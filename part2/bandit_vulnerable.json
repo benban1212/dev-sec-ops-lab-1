@@ -1,13 +1,13 @@
 {
   "errors": [
     {
-      "filename": "./../part1/app_vulnerable.py",
+      "filename": "./app_vulnerable.py",
       "reason": "exception while scanning file"
     }
   ],
-  "generated_at": "2026-05-11T11:30:53Z",
+  "generated_at": "2026-05-11T11:30:52Z",
   "metrics": {
-    "./../part1/app_vulnerable.py": {
+    "./app_vulnerable.py": {
       "loc": 86,
       "nosec": 0,
       "skipped_tests": 0

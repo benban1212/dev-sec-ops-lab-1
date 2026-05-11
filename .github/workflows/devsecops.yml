@@ -16,7 +16,8 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install bandit
-      - run: bandit -r part1/app_secure.py --severity-level high
+      - name: Scan for HIGH severity issues
+        run: bandit -r part1/ --severity-level high --exclude part1/test_security.py
 
   sca:
     name: SCA - pip-audit
@@ -27,7 +28,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install pip-audit
-      - run: pip-audit -r requirements.txt || true
+      - run: pip-audit -r requirements.txt
 
   security-tests:
     name: Security Tests - pytest

@@ -1,14 +1,14 @@
 {
   "errors": [
     {
-      "filename": "./../part1/app_vulnerable.py",
+      "filename": "./app_secure.py",
       "reason": "exception while scanning file"
     }
   ],
   "generated_at": "2026-05-11T11:30:53Z",
   "metrics": {
-    "./../part1/app_vulnerable.py": {
-      "loc": 86,
+    "./app_secure.py": {
+      "loc": 142,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -21,7 +21,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 86,
+      "loc": 142,
       "nosec": 0,
       "skipped_tests": 0
     }
