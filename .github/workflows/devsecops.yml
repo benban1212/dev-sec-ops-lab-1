@@ -162,7 +162,7 @@ jobs:
   container-scan:
     name: 🐳 Container Security Scan
     runs-on: ubuntu-latest
-    if: hashFiles('Dockerfile') != ''
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 
