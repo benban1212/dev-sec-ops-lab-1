@@ -1,0 +1,395 @@
+{
+    "report_meta": {
+        "scan_target": "files",
+        "scanned": [
+            "../requirements.txt"
+        ],
+        "policy_file": null,
+        "policy_file_source": "local",
+        "api_key": false,
+        "local_database_path": null,
+        "safety_version": "2.3.5",
+        "timestamp": "2026-05-11 11:09:15",
+        "packages_found": 9,
+        "vulnerabilities_found": 10,
+        "vulnerabilities_ignored": 0,
+        "remediations_recommended": 0,
+        "telemetry": {
+            "os_type": "Linux",
+            "os_release": "6.6.114.1-microsoft-standard-WSL2",
+            "os_description": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+            "python_version": "3.14.4",
+            "safety_command": "check",
+            "safety_options": {
+                "files": {
+                    "-r": 1
+                },
+                "json": {
+                    "--json": 1
+                }
+            },
+            "safety_version": "2.3.5",
+            "safety_source": "cli"
+        },
+        "git": {
+            "branch": "main",
+            "tag": "",
+            "commit": "a1d16289190afba45dc1de8b23a8a91a38726599",
+            "dirty": true,
+            "origin": "https://github.com/said-dev-ops/dev-sec-ops-lab-1.git"
+        },
+        "project": null,
+        "json_version": 1
+    },
+    "scanned_packages": {
+        "flask": {
+            "name": "flask",
+            "version": "3.0.3"
+        },
+        "werkzeug": {
+            "name": "werkzeug",
+            "version": "3.0.3"
+        },
+        "gunicorn": {
+            "name": "gunicorn",
+            "version": "22.0.0"
+        },
+        "python-dotenv": {
+            "name": "python-dotenv",
+            "version": "1.0.1"
+        },
+        "bandit": {
+            "name": "bandit",
+            "version": "1.7.9"
+        },
+        "safety": {
+            "name": "safety",
+            "version": "3.2.3"
+        },
+        "pytest": {
+            "name": "pytest",
+            "version": "8.2.2"
+        },
+        "pytest-flask": {
+            "name": "pytest-flask",
+            "version": "1.3.0"
+        },
+        "requests": {
+            "name": "requests",
+            "version": "2.32.3"
+        }
+    },
+    "affected_packages": {
+        "flask": {
+            "name": "flask",
+            "version": "3.0.3",
+            "found": "../requirements.txt",
+            "insecure_versions": [],
+            "secure_versions": [],
+            "latest_version_without_known_vulnerabilities": null,
+            "latest_version": null,
+            "more_info_url": "https://getsafety.com"
+        },
+        "werkzeug": {
+            "name": "werkzeug",
+            "version": "3.0.3",
+            "found": "../requirements.txt",
+            "insecure_versions": [],
+            "secure_versions": [],
+            "latest_version_without_known_vulnerabilities": null,
+            "latest_version": null,
+            "more_info_url": "https://getsafety.com"
+        },
+        "gunicorn": {
+            "name": "gunicorn",
+            "version": "22.0.0",
+            "found": "../requirements.txt",
+            "insecure_versions": [],
+            "secure_versions": [],
+            "latest_version_without_known_vulnerabilities": null,
+            "latest_version": null,
+            "more_info_url": "https://getsafety.com"
+        },
+        "pytest": {
+            "name": "pytest",
+            "version": "8.2.2",
+            "found": "../requirements.txt",
+            "insecure_versions": [],
+            "secure_versions": [],
+            "latest_version_without_known_vulnerabilities": null,
+            "latest_version": null,
+            "more_info_url": "https://getsafety.com"
+        },
+        "requests": {
+            "name": "requests",
+            "version": "2.32.3",
+            "found": "../requirements.txt",
+            "insecure_versions": [],
+            "secure_versions": [],
+            "latest_version_without_known_vulnerabilities": null,
+            "latest_version": null,
+            "more_info_url": "https://getsafety.com"
+        }
+    },
+    "announcements": [],
+    "vulnerabilities": [
+        {
+            "vulnerability_id": "86909",
+            "package_name": "flask",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": "<3.1.3",
+            "all_vulnerable_specs": [
+                "<3.1.3"
+            ],
+            "analyzed_version": "3.0.3",
+            "advisory": "Affected versions of the Flask package are vulnerable to Information Disclosure due to missing cache-variation headers when the session object is accessed via certain code paths. In Flask\u2019s session handling, accessing flask.session is intended to set a Vary: Cookie response header, but session key-only access patterns (such as using the Python in operator to test for a key without reading or mutating session values) can bypass the logic that adds the header.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2026-27205",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/86909/f17"
+        },
+        {
+            "vulnerability_id": "73969",
+            "package_name": "werkzeug",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": "<3.0.6",
+            "all_vulnerable_specs": [
+                "<3.0.6"
+            ],
+            "analyzed_version": "3.0.3",
+            "advisory": "Affected versions of Werkzeug are vulnerable to Path Traversal (CWE-22) on Windows systems running Python versions below 3.11. The safe_join() function failed to properly detect certain absolute paths on Windows, allowing attackers to potentially access files outside the intended directory. An attacker could craft special paths starting with \"/\" that bypass the directory restrictions on Windows systems. The vulnerability exists in the safe_join() function which relied solely on os.path.isabs() for path validation. This is exploitable on Windows systems by passing paths starting with \"/\" to safe_join(). To remediate, upgrade to the latest version which includes additional path validation checks. \r\nNOTE: This vulnerability specifically affects Windows systems running Python versions below 3.11 where ntpath.isabs() behavior differs.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2024-49766",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/73969/f17"
+        },
+        {
+            "vulnerability_id": "73889",
+            "package_name": "werkzeug",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": "<3.0.6",
+            "all_vulnerable_specs": [
+                "<3.0.6"
+            ],
+            "analyzed_version": "3.0.3",
+            "advisory": "Affected versions of Werkzeug are potentially vulnerable to resource exhaustion when parsing file data in forms. Applications using 'werkzeug.formparser.MultiPartParser' to parse 'multipart/form-data' requests (e.g. all flask applications) are vulnerable to a relatively simple but effective resource exhaustion (denial of service) attack. A specifically crafted form submission request can cause the parser to allocate and block 3 to 8 times the upload size in main memory. There is no upper limit; a single upload at 1 Gbit/s can exhaust 32 GB of RAM in less than 60 seconds.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2024-49767",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/73889/f17"
+        },
+        {
+            "vulnerability_id": "86908",
+            "package_name": "werkzeug",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": "<3.1.6",
+            "all_vulnerable_specs": [
+                "<3.1.6"
+            ],
+            "analyzed_version": "3.0.3",
+            "advisory": "Affected versions of the Werkzeug package are vulnerable to Denial of Service (DoS) due to improper handling of Windows special device names in path joining logic. The safe_join() function fails to reject device-name path segments when they are preceded by other segments (for example, example/NUL), and send_from_directory() relies on safe_join() when resolving user-supplied file paths.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2026-27199",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/86908/f17"
+        },
+        {
+            "vulnerability_id": "82196",
+            "package_name": "werkzeug",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": "<3.1.4",
+            "all_vulnerable_specs": [
+                "<3.1.4"
+            ],
+            "analyzed_version": "3.0.3",
+            "advisory": "Affected versions of the Werkzeug package are vulnerable to Denial of Service (DoS) due to improper handling of Windows special device names in the safe_join function. In Werkzeug versions before 3.1.4, safe_join permits path segments such as \u201cCON\u201d or \u201cAUX\u201d to pass validation, allowing send_from_directory to construct a path that resolves to a Windows device file, which opens successfully but then blocks indefinitely when read.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2025-66221",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/82196/f17"
+        },
+        {
+            "vulnerability_id": "84324",
+            "package_name": "werkzeug",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": "<3.1.5",
+            "all_vulnerable_specs": [
+                "<3.1.5"
+            ],
+            "analyzed_version": "3.0.3",
+            "advisory": "Affected versions of the Werkzeug package are vulnerable to Improper Handling of Windows Device Names due to incomplete validation of Windows reserved device names in user-controlled path segments. In werkzeug.security.safe_join, path components ending with special device names (for example CON or AUX) are not reliably rejected when they include compound extensions (for example CON.txt.html) or trailing spaces, and werkzeug.utils.send_from_directory relies on safe_join when resolving a requested filename.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2026-21860",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/84324/f17"
+        },
+        {
+            "vulnerability_id": "72809",
+            "package_name": "gunicorn",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": ">=22.0.0,<23.0.0",
+            "all_vulnerable_specs": [
+                ">=22.0.0,<23.0.0"
+            ],
+            "analyzed_version": "22.0.0",
+            "advisory": "A vulnerability in Gunicorn allowed the TolerateDangerousFraming setting to process conflicting headers (Transfer-Encoding and Content-Length) and dangerous characters in HTTP header fields. This could lead to HTTP request smuggling and header injection attacks. The issue was resolved by removing this setting and enforcing stricter header validation. \r\nNote: It happens due to an incomplete fix for CVE-2024-1135.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": null,
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/72809/f17"
+        },
+        {
+            "vulnerability_id": "SFTY-20260122-20373",
+            "package_name": "pytest",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": "<9.0.3",
+            "all_vulnerable_specs": [
+                "<9.0.3"
+            ],
+            "analyzed_version": "8.2.2",
+            "advisory": "pytest through 9.0.2 on UNIX relies on directories with the `/tmp/pytest-of-{user}` name pattern, which allows local users to cause a denial of service or possibly gain privileges.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2025-71176",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/SFTY-20260122-20373/f17"
+        },
+        {
+            "vulnerability_id": "77680",
+            "package_name": "requests",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": "<2.32.4",
+            "all_vulnerable_specs": [
+                "<2.32.4"
+            ],
+            "analyzed_version": "2.32.3",
+            "advisory": "Requests is an HTTP library. Due to a URL parsing issue, Requests releases prior to 2.32.4 may leak .netrc credentials to third parties for specific maliciously-crafted URLs. Users should upgrade to version 2.32.4 to receive a fix. For older versions of Requests, use of the .netrc file can be disabled with `trust_env=False` on one's Requests Session.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2024-47081",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/77680/f17"
+        },
+        {
+            "vulnerability_id": "90553",
+            "package_name": "requests",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": "<2.33.0",
+            "all_vulnerable_specs": [
+                "<2.33.0"
+            ],
+            "analyzed_version": "2.32.3",
+            "advisory": "Affected versions of the requests package are vulnerable to Insecure Temporary File reuse due to predictable temporary filename generation in extract_zipped_paths(). The requests.utils.extract_zipped_paths() utility extracts files from zip archives into the system temporary directory using a deterministic path, and if that file already exists, the function reuses it without validating that it is the expected extracted content.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2026-25645",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://getsafety.com/v/90553/f17"
+        }
+    ],
+    "ignored_vulnerabilities": [],
+    "remediations": {
+        "flask": {
+            "current_version": "3.0.3",
+            "vulnerabilities_found": 1,
+            "recommended_version": null,
+            "other_recommended_versions": [],
+            "more_info_url": "https://getsafety.com/?from=3.0.3"
+        },
+        "werkzeug": {
+            "current_version": "3.0.3",
+            "vulnerabilities_found": 5,
+            "recommended_version": null,
+            "other_recommended_versions": [],
+            "more_info_url": "https://getsafety.com/?from=3.0.3"
+        },
+        "gunicorn": {
+            "current_version": "22.0.0",
+            "vulnerabilities_found": 1,
+            "recommended_version": null,
+            "other_recommended_versions": [],
+            "more_info_url": "https://getsafety.com/?from=22.0.0"
+        },
+        "pytest": {
+            "current_version": "8.2.2",
+            "vulnerabilities_found": 1,
+            "recommended_version": null,
+            "other_recommended_versions": [],
+            "more_info_url": "https://getsafety.com/?from=8.2.2"
+        },
+        "requests": {
+            "current_version": "2.32.3",
+            "vulnerabilities_found": 2,
+            "recommended_version": null,
+            "other_recommended_versions": [],
+            "more_info_url": "https://getsafety.com/?from=2.32.3"
+        }
+    }
+}

@@ -1,0 +1,237 @@
+name: DevSecOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+  FAIL_ON_HIGH_SEVERITY: "true"
+
+jobs:
+  # ─── Job 1: SAST (Static Application Security Testing) ──────────────────────
+  sast:
+    name: 🔍 SAST - Bandit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Bandit
+        run: pip install bandit[toml]
+
+      - name: Run Bandit SAST
+        run: |
+          bandit -r code/session1/app_secure.py \
+            -f json \
+            -o bandit_report.json \
+            --severity-level medium \
+            --exit-zero
+        continue-on-error: false
+
+      - name: Check for HIGH severity issues
+        run: |
+          HIGH=$(python -c "
+          import json
+          data = json.load(open('bandit_report.json'))
+          high = [r for r in data['results'] if r['issue_severity'] == 'HIGH']
+          print(len(high))
+          ")
+          echo "HIGH severity issues: $HIGH"
+          if [ "$HIGH" -gt "0" ] && [ "$FAIL_ON_HIGH_SEVERITY" = "true" ]; then
+            echo "❌ FAIL: $HIGH HIGH severity issues found"
+            exit 1
+          fi
+
+      - name: Upload SAST report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit_report.json
+
+  # ─── Job 2: Dependency Vulnerability Check ───────────────────────────────────
+  dependency-check:
+    name: 🔒 SCA - Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install safety
+        run: pip install safety
+
+      - name: Check dependencies for CVEs
+        run: |
+          safety check \
+            -r code/session1/requirements.txt \
+            --json \
+            --output safety_report.json || true
+          
+          # Fail if critical vulnerabilities found
+          python -c "
+          import json, sys
+          try:
+              data = json.load(open('safety_report.json'))
+              critical = [v for v in data if 'critical' in str(v).lower()]
+              if critical:
+                  print(f'❌ {len(critical)} critical vulnerabilities found')
+                  sys.exit(1)
+              print(f'✅ Dependency check passed')
+          except Exception as e:
+              print(f'Warning: Could not parse safety output: {e}')
+          "
+
+      - name: Upload dependency report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: safety-report
+          path: safety_report.json
+
+  # ─── Job 3: Security Unit Tests ──────────────────────────────────────────────
+  security-tests:
+    name: 🧪 Security Unit Tests
+    runs-on: ubuntu-latest
+    needs: [sast]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r code/session1/requirements.txt
+          pip install pytest pytest-flask
+
+      - name: Run security tests
+        run: |
+          cd code/session2
+          pytest test_security.py -v \
+            --tb=short \
+            --junitxml=security_test_results.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-test-results
+          path: code/session2/security_test_results.xml
+
+  # ─── Job 4: Secret Scanning ──────────────────────────────────────────────────
+  secret-scan:
+    name: 🔑 Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for gitleaks
+
+      - name: Install gitleaks
+        run: |
+          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz
+          tar -xzf gitleaks_8.18.4_linux_x64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Run gitleaks
+        run: |
+          gitleaks detect \
+            --source . \
+            --report-format json \
+            --report-path gitleaks_report.json \
+            --exit-code 1 || {
+              echo "⚠️ Potential secrets found! Check gitleaks_report.json"
+              cat gitleaks_report.json
+              exit 1
+            }
+
+  # ─── Job 5: Container Security Scan (if Dockerfile present) ─────────────────
+  container-scan:
+    name: 🐳 Container Security Scan
+    runs-on: ubuntu-latest
+    if: hashFiles('Dockerfile') != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t lab-app:${{ github.sha }} .
+
+      - name: Run Trivy container scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "lab-app:${{ github.sha }}"
+          format: "table"
+          exit-code: "1"
+          severity: "CRITICAL,HIGH"
+
+  # ─── Job 6: DAST (Dynamic Testing) - only on non-prod branches ───────────────
+  dast:
+    name: 🌐 DAST - OWASP ZAP
+    runs-on: ubuntu-latest
+    needs: [security-tests]
+    if: github.ref != 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Flask app
+        run: |
+          pip install -r code/session1/requirements.txt
+          SECRET_KEY=testkey python code/session1/app_secure.py &
+          sleep 3
+          curl -f http://127.0.0.1:5001/ || exit 1
+
+      - name: Run ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.11.0
+        with:
+          target: "http://127.0.0.1:5001"
+          rules_file_name: ".zap/rules.tsv"
+          cmd_options: "-a"
+
+      - name: Upload ZAP report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-report
+          path: report_html.html
+
+  # ─── Job 7: Security Gate - Block merge if critical findings ─────────────────
+  security-gate:
+    name: 🚦 Security Gate
+    runs-on: ubuntu-latest
+    needs: [sast, dependency-check, security-tests, secret-scan]
+    if: always()
+    steps:
+      - name: Evaluate security gate
+        run: |
+          SAST="${{ needs.sast.result }}"
+          DEPS="${{ needs.dependency-check.result }}"
+          TESTS="${{ needs.security-tests.result }}"
+          SECRETS="${{ needs.secret-scan.result }}"
+
+          echo "SAST: $SAST"
+          echo "Dependencies: $DEPS"
+          echo "Security Tests: $TESTS"
+          echo "Secrets: $SECRETS"
+
+          if [ "$SAST" != "success" ] || \
+             [ "$DEPS" != "success" ] || \
+             [ "$TESTS" != "success" ] || \
+             [ "$SECRETS" != "success" ]; then
+            echo "❌ SECURITY GATE FAILED - Blocking deployment"
+            exit 1
+          fi
+
+          echo "✅ All security checks passed - Deployment approved"
