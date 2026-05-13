@@ -3,7 +3,7 @@ DevSecOps Lab - Session 1
 Secure Flask Application (Fixed Version)
 Demonstrates security best practices.
 """
-
+from flask_wtf.csrf import CSRFProtect
 from flask import Flask, request, render_template, redirect, url_for, session, jsonify, abort
 import sqlite3
 import os
@@ -17,7 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # ─── App Configuration ────────────────────────────────────────────────────────
 app = Flask(__name__)
-
+csrf = CSRFProtect(app)
 # FIX 1: Secret key loaded from environment variable, never hardcoded
 app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
