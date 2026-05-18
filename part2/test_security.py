@@ -9,7 +9,7 @@ import sys
 import os
 
 # Add session1 to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../session1"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../part1"))
 
 from app_secure import app, init_db
 
@@ -201,3 +201,17 @@ class TestSecurityHeaders:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
+# ─── CSRF Protection Tests ────────────────────────────────────────────────────
+
+class TestCSRF:
+    def _login(self, client):
+        client.post("/login", data={
+            "username": "admin",
+            "password": "Admin@Secure!2024"
+        })
+
+    def test_form_requires_csrf_token(self, client):
+        """Submitting a form without CSRF token should be rejected."""
+        self._login(client)
+        rv = client.post('/profile', data={'bio': 'test'})
+        assert rv.status_code in [400, 403], 'Form should require CSRF token'

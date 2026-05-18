@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>Profile</title></head>
+<body>
+    <h2>Edit Profile</h2>
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <textarea name="bio"></textarea>
+        <button type="submit">Save</button>
+    </form>
+</body>
+</html>

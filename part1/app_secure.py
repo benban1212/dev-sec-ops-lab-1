@@ -7,13 +7,12 @@ Demonstrates security best practices.
 from flask import Flask, request, render_template, redirect, url_for, session, jsonify, abort
 import sqlite3
 import os
-import hashlib
-import hmac
 import secrets
 import re
 import logging
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import safe_join
 
 # ─── App Configuration ────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -44,7 +43,7 @@ def init_db():
     )""")
     # Seed admin with hashed password
     pw_hash = generate_password_hash("Admin@Secure!2024")
-    c.execute("INSERT OR IGNORE INTO users (id,username,password_hash,role) VALUES (1,'admin',?,'admin')", (pw_hash,))
+    c.execute("INSERT OR IGNORE INTO users (id, username, password_hash, role) VALUES (1, 'admin', ?, 'admin')", (pw_hash,))
     conn.commit()
     conn.close()
 
@@ -53,7 +52,30 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-# ─── Auth Decorator ───────────────────────────────────────────────────────────
+# ─── CSRF Protection Functions ────────────────────────────────────────────────
+def generate_csrf_token():
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(32)
+    return session['csrf_token']
+
+def csrf_protect(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if request.method in ['POST', 'PUT', 'DELETE']:
+            # Skip CSRF check for login and static endpoints
+            if request.endpoint in ['login', 'static']:
+                return f(*args, **kwargs)
+            token = request.form.get('csrf_token') or request.headers.get('X-CSRFToken')
+            if not token or token != session.get('csrf_token'):
+                return 'CSRF token missing or invalid', 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.context_processor
+def inject_csrf_token():
+    return dict(csrf_token=generate_csrf_token())
+
+# ─── Auth Decorators ──────────────────────────────────────────────────────────
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -75,7 +97,7 @@ def validate_username(username: str) -> bool:
     """Allow only alphanumeric + underscore, 3-32 chars."""
     return bool(re.match(r"^[a-zA-Z0-9_]{3,32}$", username))
 
-ALLOWED_HOSTS = {"google.com", "example.com", "localhost"}
+ALLOWED_HOSTS = {"google.com", "example.com", "localhost", "127.0.0.1", "8.8.8.8"}
 
 def validate_host(host: str) -> bool:
     """Whitelist allowed ping targets."""
@@ -87,8 +109,6 @@ def validate_host(host: str) -> bool:
 def index():
     return "<h1>Secure Flask App</h1><a href='/login'>Login</a>"
 
-
-# FIX 2: Parameterized queries prevent SQL Injection
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -113,29 +133,21 @@ def login():
             return redirect(url_for("dashboard"))
         else:
             logger.warning(f"Failed login attempt for: {username}")
-            # Generic error message - don't reveal which field was wrong
             return render_template("login.html", error="Invalid credentials"), 401
 
     return render_template("login.html")
 
-
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    # FIX 3: Use Jinja2 templates with auto-escaping (no raw f-strings)
-    return f"<h1>Welcome {session['username']}!</h1><p>Role: {session['role']}</p>"
+    return render_template("dashboard.html", username=session['username'], role=session['role'])
 
-
-# FIX 4: Search uses templates with auto-escaping - XSS prevented
 @app.route("/search")
 @login_required
 def search():
     query = request.args.get("q", "")
-    # Jinja2 auto-escaping handles XSS - just pass to template
     return render_template("search.html", query=query)
 
-
-# FIX 5: Whitelist-based host validation - no shell=True
 @app.route("/ping")
 @login_required
 @admin_required
@@ -148,26 +160,19 @@ def ping():
     result = subprocess.run(["ping", "-c", "1", host], capture_output=True, text=True, timeout=5)
     return jsonify({"output": result.stdout})
 
-
-# FIX 6: No deserialization of user input - use JSON instead
 @app.route("/load_profile", methods=["POST"])
 @login_required
 def load_profile():
-    import json
     data = request.get_json()
     if not data or not isinstance(data, dict):
         return jsonify({"error": "Invalid JSON"}), 400
-    # Validate expected fields only
     allowed_keys = {"theme", "language", "notifications"}
     profile = {k: v for k, v in data.items() if k in allowed_keys}
     return jsonify({"profile": profile})
 
-
-# FIX 7: Path traversal - use safe_join and whitelist
 @app.route("/read_file")
 @login_required
 def read_file():
-    from werkzeug.utils import safe_join
     ALLOWED_FILES = {"readme.txt", "help.txt", "faq.txt"}
     filename = request.args.get("file", "")
     if filename not in ALLOWED_FILES:
@@ -179,8 +184,6 @@ def read_file():
     except (FileNotFoundError, OSError):
         return "File not found", 404
 
-
-# FIX 8: API never returns passwords; requires auth
 @app.route("/api/users")
 @login_required
 @admin_required
@@ -190,8 +193,17 @@ def api_users():
     conn.close()
     return jsonify([dict(u) for u in users])
 
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+@csrf_protect
+def profile():
+    if request.method == 'POST':
+        bio = request.form.get('bio', '')
+        # In a real app, save to database. For lab, just return success.
+        return "Profile updated", 200
+    return render_template('profile.html')
 
 if __name__ == "__main__":
     init_db()
-    # SECURE: Debug off, only localhost in dev (use gunicorn/nginx in prod)
+    # SECURE: Debug off, only localhost in dev
     app.run(debug=False, host="127.0.0.1", port=5001)
