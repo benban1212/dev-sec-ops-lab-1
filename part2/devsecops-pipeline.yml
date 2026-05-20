@@ -1,5 +1,8 @@
 name: DevSecOps CI/CD Pipeline
-
+permissions:               # <-- Add this block at the top level
+  contents: read
+  issues: write
+  pull-requests: write
 on:
   push:
     branches: [main, develop]
