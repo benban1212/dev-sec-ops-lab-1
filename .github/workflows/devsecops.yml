@@ -156,13 +156,13 @@ jobs:
           exit-code: "1"
           severity: "CRITICAL,HIGH"
 
-  # ─── Job 6: DAST (OWASP ZAP) – only on non-main branches ────────
+    # ─── Job 6: DAST (OWASP ZAP) – only on non-main branches ────────
   dast:
     name: 🌐 DAST - OWASP ZAP
     runs-on: ubuntu-latest
     needs: [security-tests]
     if: github.ref != 'refs/heads/main'
-    permissions:               # <-- ADD THESE THREE LINES
+    permissions:
       contents: read
       issues: write
       pull-requests: write
@@ -182,10 +182,10 @@ jobs:
       - name: Upload ZAP report
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true   # <-- THIS PREVENTS PIPELINE FAILURE
         with:
           name: zap-report
           path: report_html.html
-
   # ─── Job 7: Security Gate – blocks merge if any critical job fails
   security-gate:
     name: 🚦 Security Gate
