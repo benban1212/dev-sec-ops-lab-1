@@ -213,3 +213,4 @@ if __name__ == "__main__":
     init_db()
     # SECURE: Debug off, only localhost in dev
     app.run(debug=False, host="127.0.0.1", port=5001)
+# secure app final version
