@@ -155,13 +155,14 @@ jobs:
           format: "table"
           exit-code: "1"
           severity: "CRITICAL,HIGH"
- # ─── Job 6: DAST (OWASP ZAP) – only on non-main branches ────────
-      dast:
+ 
+        # ─── Job 6: DAST (OWASP ZAP) – only on non-main branches ────────
+  dast:
     name: 🌐 DAST - OWASP ZAP
     runs-on: ubuntu-latest
     needs: [security-tests]
     if: github.ref != 'refs/heads/main'
-    continue-on-error: true   # <-- ADD THIS LINE
+    continue-on-error: true
     permissions:
       contents: read
       issues: write
@@ -178,8 +179,7 @@ jobs:
         uses: zaproxy/action-baseline@v0.11.0
         with:
           target: "http://127.0.0.1:5001"
-          cmd_options: "-a"
-      # No artifact upload 
+          cmd_options: "-a" 
   # ─── Job 7: Security Gate – blocks merge if any critical job fails
   security-gate:
     name: 🚦 Security Gate
