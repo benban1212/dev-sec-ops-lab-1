@@ -162,6 +162,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [security-tests]
     if: github.ref != 'refs/heads/main'
+    permissions:               # <-- ADD THESE THREE LINES
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - name: Start Flask app
